@@ -480,10 +480,10 @@ if st.session_state["is_login"]:
                 type="password",
             )
 
-            if openai_api_key:
+            if openai_api_key is not None:
                 st.session_state["openai_api_key"] = openai_api_key
                 SaveEnv.save_openai_api_key()
-            if claude_api_key:
+            if claude_api_key is not None:
                 st.session_state["claude_api_key"] = claude_api_key
                 SaveEnv.save_claude_api_key()
 
