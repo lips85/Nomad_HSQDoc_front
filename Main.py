@@ -4,10 +4,13 @@ import requests
 import streamlit as st
 
 # from langchain.globals import set_debug
+from langchain.docstore.document import Document
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.document_loaders import UnstructuredFileLoader
+import pdfplumber
+
+# from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.embeddings.cache import CacheBackedEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -91,30 +94,43 @@ class FileController:
     @staticmethod
     @st.cache_resource(show_spinner="Embedding file...")
     def embed_file(file_name, file_path):
-        # os.makedirs("./.cache/files", exist_ok=True)
-        # file_path = f"./.cache/files/{file.name}"
-        # with open(file_path, "wb") as f:
-        #     f.write(file.read())
-
         cache_dir = LocalFileStore(f"./.cache/embeddings/open_ai/{file_name}")
         splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
             separators=["\n\n", ".", "?", "!"],
             chunk_size=1000,
             chunk_overlap=100,
         )
-        loader = UnstructuredFileLoader(file_path)
-        docs = loader.load_and_split(text_splitter=splitter)
+
+        # 파일 로드 및 텍스트 추출
+        docs = []
+        if file_name.lower().endswith(".pdf"):
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        docs.append(Document(page_content=text))  # Document 객체로 변환
+
+        else:
+            # 텍스트 파일인 경우
+            with open(file_path, "r", encoding="utf-8") as file:
+                text = file.read()
+                docs.append(Document(page_content=text))  # Document 객체로 변환
+
+        # 텍스트 분할
+        doc_chunks = splitter.split_documents(docs)
+
+        # 임베딩 생성
         embeddings = OpenAIEmbeddings(openai_api_key=st.session_state["openai_api_key"])
         cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
             embeddings, cache_dir
         )
-        vectorstore = FAISS.from_documents(docs, cached_embeddings)
+        vectorstore = FAISS.from_documents(doc_chunks, cached_embeddings)
         return vectorstore.as_retriever()
 
     # 문서 포맷팅 함수
     @staticmethod
     def format_docs(docs):
-        return "\n\n".join(document.page_content for document in docs)
+        return "\n\n".join(doc.page_content for doc in docs)
 
 
 def clear_session_keys():
