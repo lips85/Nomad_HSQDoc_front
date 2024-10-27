@@ -159,9 +159,7 @@ if st.session_state["jwt"] is None:
                     token = response.json()["token"]
                     st.session_state.jwt = token
                     st.session_state["username"] = username
-                    # 로인 후 rerun 하는걸로 form 안 보이게 하기
-                    # 그대신 rerun하면 st.success가 안 보이게 된다: 생기자마자 rerun으로 사라지기 때문
-                    # st.success("Welcome! You are logged in!")
+
                     st.rerun()
                 elif response.status_code == 400:
                     error_message = response.json()["error"]
@@ -335,7 +333,7 @@ if st.session_state["is_login"]:
                     model=st.session_state["openai_model"],
                     openai_api_key=st.session_state["openai_api_key"],
                 )
-                print("you chose openai")
+
             elif st.session_state["openai_model"] == AI_MODEL[2]:
                 llm = ChatAnthropic(
                     temperature=0.1,
@@ -344,7 +342,6 @@ if st.session_state["is_login"]:
                     model=st.session_state["openai_model"],
                     anthropic_api_key=st.session_state["claude_api_key"],
                 )
-                print("you chose claude")
 
             prompt = ChatPromptTemplate.from_messages(
                 [
@@ -529,7 +526,8 @@ if st.session_state["is_login"]:
                 Made by hary, seedjin298.
                 
                 Github
-                https://github.com/lips85/Nomad_HSQDoc
+                https://github.com/lips85/Nomad_HSQDoc_backend
+                https://github.com/lips85/Nomad_HSQDoc_frontend
                 """
         )
         st.divider()
