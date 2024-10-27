@@ -73,6 +73,7 @@ for key, default in [
     ("openai_model", "선택해주세요"),
     ("openai_model_check", False),
     ("file_check", False),
+    ("subtitle_check", True),
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
@@ -86,7 +87,8 @@ st.set_page_config(
 st.title("Welcome to HSQDoc!")
 
 if st.session_state["is_login"]:
-    st.subheader("Create a Conversation or Choose a Existing Conversation to Start")
+    if st.session_state["subtitle_check"]:
+        st.subheader("Create a Conversation or Choose a Existing Conversation to Start")
 
 
 class FileController:
@@ -249,17 +251,21 @@ else:
             CONVERSATIONS_URL,
             headers={"jwt": st.session_state.jwt},
         )
-        if conversations_data.status_code == 200:
+        if conversations_data.status_code != 200:
+            st.error("Please log in")
+        elif conversations_data.status_code == 200:
             conversations = conversations_data.json()
             conversations_options = ["Create Conversation"]
             for conversation in conversations:
                 conversations_options.append(conversation["title"])
+
             st.subheader("1. Create or Choose a Conversation")
             chosen_option = st.selectbox(
                 "Create or Choose a Conversation",
                 conversations_options,
                 label_visibility="collapsed",
             )
+
             if chosen_option == "Create Conversation":
                 with st.form(key="create_conversation", clear_on_submit=True):
                     new_title = st.text_input(
@@ -296,6 +302,7 @@ else:
                 st.session_state["conversation_url"] = (
                     CONVERSATIONS_URL + str(chosen_conversation_id) + "/"
                 )
+                st.session_state["subtitle_check"] = False
 
                 # 과거 대화 기록 가져오기
                 if (
@@ -328,9 +335,6 @@ else:
                     st.session_state["file_path"] = f"./.cache/files/{file_name}"
                     if st.session_state["file_name"] != "":
                         st.session_state["file_check"] = True
-
-        else:
-            st.error("Please log in")
 
     # 메인 로직
 if st.session_state["is_login"]:
@@ -527,15 +531,17 @@ if st.session_state["is_login"]:
                     st.session_state["openai_api_key_check"]
                     and st.session_state["claude_api_key_check"]
                 ):
+                    st.subheader("4. Choose a Model")
                     st.selectbox(
                         "Model을 골라주세요.",
                         options=AI_MODEL,
                         on_change=SaveEnv.save_openai_model,
                         key="openai_model",
+                        label_visibility="collapsed",
                     )
 
                     if st.session_state["openai_model_check"]:
-                        st.success("😄모델이 선택되었니다.😄")
+                        st.success("😄모델이 선택되었습니다.😄")
                     else:
                         st.warning("모델을 선택해주세요.")
                     st.divider()
