@@ -1,7 +1,14 @@
 import streamlit as st
 import requests
+import os
+from dotenv import load_dotenv
 
-USER_STATS_URL = "http://127.0.0.1:8000/api/v1/users/stats"
+load_dotenv()
+
+# backend urls
+BACKEND_URL = os.getenv("BACKEND_URL")
+
+USER_STATS_URL = BACKEND_URL + "api/v1/users/stats"
 
 st.title("User Stats")
 
