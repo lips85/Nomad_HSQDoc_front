@@ -254,8 +254,11 @@ else:
             conversations_options = ["Create Conversation"]
             for conversation in conversations:
                 conversations_options.append(conversation["title"])
+            st.subheader("1. Create or Choose a Conversation")
             chosen_option = st.selectbox(
-                "Create or Choose a Conversation", conversations_options
+                "Create or Choose a Conversation",
+                conversations_options,
+                label_visibility="collapsed",
             )
             if chosen_option == "Create Conversation":
                 with st.form(key="create_conversation", clear_on_submit=True):
@@ -452,10 +455,12 @@ if st.session_state["is_login"]:
             st.divider()
 
             # 파일 업로드 로직을 폼 밖으로 이동
+            st.subheader("2. Upload a File")
             uploaded_file = st.file_uploader(
-                "Upload a .txt .pdf or .docx file",
-                type=["pdf", "txt", "docx"],
+                "Upload a .txt or .pdf file",
+                type=["pdf", "txt"],
                 key="file",
+                label_visibility="collapsed",
             )
             if uploaded_file:
                 SaveEnv.save_file()
@@ -482,78 +487,87 @@ if st.session_state["is_login"]:
 
             st.divider()
 
-            # API 키 입력을 폼 밖으로 이동
-            openai_api_key = st.text_input(
-                "OpenAI API_KEY 입력",
-                placeholder="sk-...",
-                key="openai_api_key_input",  # 키 이름 변경
-                type="password",
-            )
-            claude_api_key = st.text_input(
-                "Anthropic API_KEY 입력",
-                placeholder="sk-...",
-                key="claude_api_key_input",  # 키 이름 변경
-                type="password",
-            )
+            if uploaded_file and st.session_state["file_check"]:
+                st.subheader("3. Input API Keys")
+                # API 키 입력을 폼 밖으로 이동
+                openai_api_key = st.text_input(
+                    "(1) OpenAI API_KEY",
+                    placeholder="sk-...",
+                    key="openai_api_key_input",  # 키 이름 변경
+                    type="password",
+                )
+                if openai_api_key is not None:
+                    st.session_state["openai_api_key"] = openai_api_key
+                    SaveEnv.save_openai_api_key()
 
-            if openai_api_key is not None:
-                st.session_state["openai_api_key"] = openai_api_key
-                SaveEnv.save_openai_api_key()
-            if claude_api_key is not None:
-                st.session_state["claude_api_key"] = claude_api_key
-                SaveEnv.save_claude_api_key()
+                if st.session_state["openai_api_key_check"]:
+                    st.success("😄OpenAI API_KEY 저장😄")
+                else:
+                    st.warning("OpenAI API_KEY를 넣어주세요.")
 
-            if st.session_state["openai_api_key_check"]:
-                st.success("😄OpenAI API_KEY가 저장되었습니다.😄")
-            else:
-                st.warning("OpenAI API_KEY를 넣어주세요.")
-
-            if st.session_state["claude_api_key_check"]:
-                st.success("😄Anthropic API_KEY가 저장되었습니다.😄")
-            else:
-                st.warning("Anthropic API_KEY를 넣어주세요.")
-
-            if (
-                st.session_state["openai_api_key_check"]
-                and st.session_state["claude_api_key_check"]
-            ):
-                st.selectbox(
-                    "Model을 골라주세요.",
-                    options=AI_MODEL,
-                    on_change=SaveEnv.save_openai_model,
-                    key="openai_model",
+                claude_api_key = st.text_input(
+                    "(2) Anthropic API_KEY",
+                    placeholder="sk-...",
+                    key="claude_api_key_input",  # 키 이름 변경
+                    type="password",
                 )
 
-                if st.session_state["openai_model_check"]:
-                    st.success("😄모델이 선택되었니다.😄")
+                if claude_api_key is not None:
+                    st.session_state["claude_api_key"] = claude_api_key
+                    SaveEnv.save_claude_api_key()
+
+                if st.session_state["claude_api_key_check"]:
+                    st.success("😄Anthropic API_KEY 저장😄")
                 else:
-                    st.warning("모델을 선택해주세요.")
+                    st.warning("Anthropic API_KEY를 넣어주세요.")
+
                 st.divider()
 
-            st.write(
-                """
-                    Made by hary, seedjin298.
-                    
-                    Github
-                    https://github.com/lips85/Nomad_HSQDoc_backend
-                    https://github.com/lips85/Nomad_HSQDoc_frontend
-                    """
-            )
-            st.divider()
-            st.write("Click to LogOut")
-            logout_request = st.button(
-                "LogOut",
-                disabled=not st.session_state.is_login,
-            )
-            if logout_request:
-                response = requests.post(
-                    USERS_URL + "logout/",
-                    headers={"jwt": st.session_state.jwt},
-                )
-                if response.status_code == 200:
-                    clear_session_keys()
-                    # 로그아웃 후 rerun -> 바로 로그인 form이 나타남
-                    # st.success("LogOut Success!")
-                    st.rerun()
-                else:
-                    st.error("Failed to LogOut")
+                if (
+                    st.session_state["openai_api_key_check"]
+                    and st.session_state["claude_api_key_check"]
+                ):
+                    st.selectbox(
+                        "Model을 골라주세요.",
+                        options=AI_MODEL,
+                        on_change=SaveEnv.save_openai_model,
+                        key="openai_model",
+                    )
+
+                    if st.session_state["openai_model_check"]:
+                        st.success("😄모델이 선택되었니다.😄")
+                    else:
+                        st.warning("모델을 선택해주세요.")
+                    st.divider()
+
+
+with st.sidebar:
+    st.markdown(
+        """
+
+        ## Made by hary, seedjin298.
+        
+        ### Github
+        https://github.com/lips85/Nomad_HSQDoc_backend
+
+        https://github.com/lips85/Nomad_HSQDoc_frontend
+        """
+    )
+    st.divider()
+    st.write("Click to LogOut")
+    logout_request = st.button(
+        "LogOut",
+        disabled=not st.session_state.is_login,
+    )
+    if logout_request:
+        response = requests.post(
+            USERS_URL + "logout/",
+            headers={"jwt": st.session_state.jwt},
+        )
+        if response.status_code == 200:
+            clear_session_keys()
+            # 로그아웃 후 rerun -> 바로 로그인 form이 나타남
+            # st.success("LogOut Success!")
+            st.rerun()
+        else:
+            st.error("Failed to LogOut")
