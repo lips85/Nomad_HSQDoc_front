@@ -111,6 +111,7 @@ onnx==1.16.1
 onnxruntime==1.19.2
 openai==1.52.0
 opencv-python==4.10.0.84
+opencv-python-headless==4.10.0.84
 orderly-set==5.2.2
 orjson==3.10.9
 packaging==24.1

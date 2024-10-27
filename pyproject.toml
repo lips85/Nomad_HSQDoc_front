@@ -184,6 +184,7 @@ yarl = "1.15.5"
 django = "^5.1.2"
 langchain-cli = "^0.0.31"
 python-magic = "0.4.27"
+opencv-python-headless = "^4.10.0.84"
 
 
 [tool.poetry.group.dev.dependencies]
