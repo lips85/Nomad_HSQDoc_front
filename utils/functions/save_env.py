@@ -2,8 +2,14 @@ import re
 import requests
 import streamlit as st
 from utils.constant.constant import API_KEY_PATTERN
+import os
+from dotenv import load_dotenv
 
-USER_PROFILE_URL = "http://127.0.0.1:8000/api/v1/users/profile/"
+load_dotenv()
+
+# backend urls
+BACKEND_URL = os.getenv("BACKEND_URL")
+USER_PROFILE_URL = BACKEND_URL + "api/v1/users/profile/"
 
 
 class SaveEnv:
@@ -11,7 +17,6 @@ class SaveEnv:
     def save_openai_api_key():
 
         st.session_state["openai_api_key_check"] = bool(
-
             re.match(API_KEY_PATTERN, st.session_state["openai_api_key"])
         )
         if st.session_state["openai_api_key_check"]:
