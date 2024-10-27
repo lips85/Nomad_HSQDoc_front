@@ -11,8 +11,8 @@ class Debug:
 
     @staticmethod
     def my_anthropic_api_key():
-        st.session_state["anthropic_api_key"] = os.environ["ANTHROPIC_API_KEY"]
-        st.session_state["anthropic_api_key_check"] = True
+        st.session_state["claude_api_key"] = os.environ["ANTHROPIC_API_KEY"]
+        st.session_state["claude_api_key_check"] = True
 
     @staticmethod
     def my_url():
