@@ -44,11 +44,11 @@ load_dotenv()
 
 
 # backend urls
-
-FILE_UPLOAD_URL = "https://nomad-hsqdoc.onrender.com/uploads/"
-USERS_URL = "https://nomad-hsqdoc.onrender.com/api/v1/users/"
-CONVERSATIONS_URL = "https://nomad-hsqdoc.onrender.com/api/v1/conversations/"
-MESSAGES_URL = "https://nomad-hsqdoc.onrender.com/api/v1/messages/"
+BACKEND_URL = os.getenv("BACKEND_URL")
+FILE_UPLOAD_URL = BACKEND_URL + "uploads/"
+USERS_URL = BACKEND_URL + "api/v1/users/"
+CONVERSATIONS_URL = BACKEND_URL + "api/v1/conversations/"
+MESSAGES_URL = BACKEND_URL + "api/v1/messages/"
 
 
 # front 손보기
