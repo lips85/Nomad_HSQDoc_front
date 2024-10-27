@@ -23,7 +23,6 @@ from utils.constant.constant import AI_MODEL, API_KEY_PATTERN
 # 파일 분리 (함수들)
 from utils.functions.save_env import SaveEnv
 from utils.functions.chat import ChatMemory, ChatCallbackHandler
-from utils.functions.debug import Debug
 
 # 디버그용
 from dotenv import load_dotenv
@@ -488,15 +487,6 @@ if st.session_state["is_login"]:
                 st.session_state["claude_api_key"] = claude_api_key
                 SaveEnv.save_claude_api_key()
 
-            # Debug 버튼을 폼 밖으로 이동
-            if st.button("Debug OpenAI API Key"):
-                Debug.my_openai_api_key()
-                st.success("OpenAI API Key가 디버그 모드로 설정되었습니다.")
-
-            if st.button("Debug Anthropic API Key"):
-                Debug.my_anthropic_api_key()
-                st.success("Anthropic API Key가 디버그 모드로 설정되었습니다.")
-
             if st.session_state["openai_api_key_check"]:
                 st.success("😄OpenAI API_KEY가 저장되었습니다.😄")
             else:
@@ -507,18 +497,22 @@ if st.session_state["is_login"]:
             else:
                 st.warning("Anthropic API_KEY를 넣어주세요.")
 
-            st.selectbox(
-                "Model을 골라주세요.",
-                options=AI_MODEL,
-                on_change=SaveEnv.save_openai_model,
-                key="openai_model",
-            )
+            if (
+                st.session_state["openai_api_key_check"]
+                and st.session_state["claude_api_key_check"]
+            ):
+                st.selectbox(
+                    "Model을 골라주세요.",
+                    options=AI_MODEL,
+                    on_change=SaveEnv.save_openai_model,
+                    key="openai_model",
+                )
 
-            if st.session_state["openai_model_check"]:
-                st.success("😄모델이 선택되었니다.😄")
-            else:
-                st.warning("모델을 선택해주세요.")
-            st.divider()
+                if st.session_state["openai_model_check"]:
+                    st.success("😄모델이 선택되었니다.😄")
+                else:
+                    st.warning("모델을 선택해주세요.")
+                st.divider()
 
             st.write(
                 """
