@@ -57,14 +57,3 @@ class SaveEnv:
         st.session_state["openai_model_check"] = (
             st.session_state["openai_model"] != "선택해주세요"
         )
-
-    @staticmethod
-    def save_url():
-        if st.session_state["url"]:
-            st.session_state["url_check"] = True
-            st.session_state["url_name"] = (
-                st.session_state["url"].split("://")[1].replace("/", "_")
-            )
-        else:
-            st.session_state["url_check"] = False
-            st.session_state["url_name"] = None
