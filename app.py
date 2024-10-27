@@ -45,10 +45,10 @@ load_dotenv()
 
 # backend urls
 
-FILE_UPLOAD_URL = "http://127.0.0.1:8000/uploads/"
-USERS_URL = "http://127.0.0.1:8000/api/v1/users/"
-CONVERSATIONS_URL = "http://127.0.0.1:8000/api/v1/conversations/"
-MESSAGES_URL = "http://127.0.0.1:8000/api/v1/messages/"
+FILE_UPLOAD_URL = "https://nomad-hsqdoc.onrender.com/uploads/"
+USERS_URL = "https://nomad-hsqdoc.onrender.com/api/v1/users/"
+CONVERSATIONS_URL = "https://nomad-hsqdoc.onrender.com/api/v1/conversations/"
+MESSAGES_URL = "https://nomad-hsqdoc.onrender.com/api/v1/messages/"
 
 
 # front 손보기
