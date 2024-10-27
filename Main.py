@@ -21,7 +21,9 @@ from langchain_core.runnables import RunnablePassthrough
 from utils.constant.constant import AI_MODEL, API_KEY_PATTERN
 
 # 파일 분리 (함수들)
+from utils.functions.save_env import SaveEnv
 from utils.functions.chat import ChatMemory, ChatCallbackHandler
+from utils.functions.debug import Debug
 
 # 디버그용
 from dotenv import load_dotenv
@@ -114,6 +116,12 @@ class FileController:
     @staticmethod
     def format_docs(docs):
         return "\n\n".join(document.page_content for document in docs)
+
+
+def clear_session_keys():
+    keys = list(st.session_state.keys())
+    for key in keys:
+        st.session_state.pop(key)
 
 
 # 사이드바 설정
@@ -390,7 +398,7 @@ if st.session_state["is_login"]:
                             )
                     else:
                         ChatMemory.send_message(
-                            "OPENAI_API_KEY or 모델 선택이 잘못되었습니다. 사이드바를 다시 확인하세요.",
+                            "OPENAI_API_KEY or 모델 선택이 잘못되었니다. 사이드바를 다시 확인하세요.",
                             "ai",
                         )
             else:
@@ -427,3 +435,115 @@ if st.session_state["is_login"]:
                         st.rerun()
 
             st.divider()
+
+            # 파일 업로드 로직을 폼 밖으로 이동
+            uploaded_file = st.file_uploader(
+                "Upload a .txt .pdf or .docx file",
+                type=["pdf", "txt", "docx"],
+                key="file",
+            )
+            if uploaded_file:
+                SaveEnv.save_file()
+                # 파일을 저장하고 처리하는 로직
+                os.makedirs("./.cache/files", exist_ok=True)
+                st.session_state["file_path"] = f"./.cache/files/{uploaded_file.name}"
+                with open(st.session_state["file_path"], "wb") as f:
+                    f.write(uploaded_file.read())
+
+                st.session_state["file_name"] = uploaded_file.name
+                uploaded_file_path_for_django = FILE_UPLOAD_URL + uploaded_file.name
+                response = requests.put(
+                    st.session_state["conversation_url"],
+                    headers={"jwt": st.session_state.jwt},
+                    data={
+                        "file_name": st.session_state["file_name"],
+                        "file_url": uploaded_file_path_for_django,
+                    },
+                )
+                if st.session_state["file_check"]:
+                    st.success("😄문서가 업로드되었습니다.😄")
+                else:
+                    st.warning("문서를 업로드해주세요.")
+
+            st.divider()
+
+            # API 키 입력을 폼 밖으로 이동
+            openai_api_key = st.text_input(
+                "OpenAI API_KEY 입력",
+                placeholder="sk-...",
+                key="openai_api_key_input",  # 키 이름 변경
+                type="password",
+            )
+            claude_api_key = st.text_input(
+                "Anthropic API_KEY 입력",
+                placeholder="sk-...",
+                key="claude_api_key_input",  # 키 이름 변경
+                type="password",
+            )
+
+            if openai_api_key:
+                st.session_state["openai_api_key"] = openai_api_key
+                SaveEnv.save_openai_api_key()
+            if claude_api_key:
+                st.session_state["claude_api_key"] = claude_api_key
+                SaveEnv.save_claude_api_key()
+
+            # Debug 버튼을 폼 밖으로 이동
+            if st.button("Debug OpenAI API Key"):
+                Debug.my_openai_api_key()
+                st.success("OpenAI API Key가 디버그 모드로 설정되었습니다.")
+
+            if st.button("Debug Anthropic API Key"):
+                Debug.my_anthropic_api_key()
+                st.success("Anthropic API Key가 디버그 모드로 설정되었습니다.")
+
+            if st.session_state["openai_api_key_check"]:
+                st.success("😄OpenAI API_KEY가 저장되었습니다.😄")
+            else:
+                st.warning("OpenAI API_KEY를 넣어주세요.")
+
+            if st.session_state["claude_api_key_check"]:
+                st.success("😄Anthropic API_KEY가 저장되었습니다.😄")
+            else:
+                st.warning("Anthropic API_KEY를 넣어주세요.")
+
+            st.selectbox(
+                "Model을 골라주세요.",
+                options=AI_MODEL,
+                on_change=SaveEnv.save_openai_model,
+                key="openai_model",
+            )
+
+            if st.session_state["openai_model_check"]:
+                st.success("😄모델이 선택되었니다.😄")
+            else:
+                st.warning("모델을 선택해주세요.")
+            st.divider()
+
+            st.write(
+                """
+                    Made by hary, seedjin298.
+                    
+                    Github
+                    https://github.com/lips85/Nomad_HSQDoc_backend
+                    https://github.com/lips85/Nomad_HSQDoc_frontend
+                    """
+            )
+            st.divider()
+            st.write("Click to LogOut")
+            logout_request = st.button(
+                "LogOut",
+                disabled=not st.session_state.is_login,
+            )
+            if logout_request:
+                response = requests.post(
+                    USERS_URL + "logout/",
+                    headers={"jwt": st.session_state.jwt},
+                )
+                if response.status_code == 200:
+                    clear_session_keys()
+                    # 로그아웃 후 rerun -> 바로 로그인 form이 나타남
+                    # st.success("LogOut Success!")
+                    st.rerun()
+                else:
+                    st.error("Failed to LogOut")
